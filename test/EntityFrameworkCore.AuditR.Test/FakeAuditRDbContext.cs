@@ -6,7 +6,7 @@ namespace EntityFrameworkCore.AuditR.Test
 {
     public class FakeAuditRDbContext : AuditRDbContext
     {
-        public FakeAuditRDbContext(Func<AuditUser> auditUserFunc, AuditRConfiguration auditRConfiguration, DbContextOptions options) 
+        public FakeAuditRDbContext(Func<AuditUser> auditUserFunc, AuditRConfiguration auditRConfiguration, DbContextOptions options)
             : base(auditUserFunc, auditRConfiguration, options)
         {
         }

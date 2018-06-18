@@ -11,19 +11,18 @@ namespace EntityFrameworkCore.AuditR.Extensions
     {
         internal static List<EntityEntry> GetChangeset(this DbContext context, Func<EntityEntry, bool> predicate = null)
         {
-            return context.ChangeTracker.Entries().Where(w => w.Entity is IAuditable)
-                .Where(w => (predicate == null && (w.State == EntityState.Added || w.State == EntityState.Deleted || w.State == EntityState.Modified))
-                    || predicate(w))
+            return context.ChangeTracker.Entries().Where(w => w.Entity is IAuditable && ((predicate == null && (w.State == EntityState.Added || w.State == EntityState.Deleted || w.State == EntityState.Modified))
+                    || predicate(w)))
                 .ToList();
         }
 
-        internal static List<AuditEntry> GetAuditEntries(this DbContext context, IEnumerable<EntityEntry> changeset, AuditUser currentUser, Guid correlationId)
+        internal static List<AuditEntry> GetAuditEntries(this IEnumerable<EntityEntry> changeset, AuditUser currentUser, Guid correlationId)
         {
             var dateCreated = DateTime.UtcNow;
-            return changeset.Select(w => Audit(context, w, currentUser, correlationId, dateCreated)).ToList();
+            return changeset.Select(w => Audit(w, currentUser, correlationId, dateCreated)).ToList();
         }
 
-        private static AuditEntry Audit(DbContext context, EntityEntry entry, AuditUser currentUser, Guid correlationId, DateTime dateCreated)
+        private static AuditEntry Audit(EntityEntry entry, AuditUser currentUser, Guid correlationId, DateTime dateCreated)
         {
             var includedProperties = new List<string>();
             var entityKey = entry.GetPrimaryKey();
@@ -44,7 +43,7 @@ namespace EntityFrameworkCore.AuditR.Extensions
 
             if (entry.State == EntityState.Modified)
             {
-                var props = entityType.GetProperties().Where(prop => !prop.GetCustomAttributes(typeof(AuditIgnorePropertyAttribute), false).Any());
+                var props = entityType.GetProperties().Where(prop => prop.GetCustomAttributes(typeof(AuditIgnorePropertyAttribute), false).Length == 0);
                 includedProperties.AddRange(props.Select(pi => pi.Name));
 
                 var changeset = (from prop in entry.Properties

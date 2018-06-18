@@ -1,13 +1,12 @@
-using System.Data.SQLite;
 using System.Linq;
 using AutoFixture.Xunit2;
 using EntityFrameworkCore.AuditR.Models;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace EntityFrameworkCore.AuditR.Test
 {
-
     public class DbContextTest
     {
         private readonly AuditRConfiguration _auditRConfiguration = new AuditRConfiguration(keyDefaultValue: KeyDefaultValue.None);
@@ -16,7 +15,7 @@ namespace EntityFrameworkCore.AuditR.Test
         [Theory, AutoData]
         public void Db_Insert_Audit(FakeDbModel fakeDbModel)
         {
-            var connection = new SQLiteConnection("DataSource=:memory:");
+            var connection = new SqliteConnection("DataSource=:memory:");
             connection.Open();
 
             var options = new DbContextOptionsBuilder<FakeAuditRDbContext>()
@@ -51,7 +50,7 @@ namespace EntityFrameworkCore.AuditR.Test
         [Theory, AutoData]
         public void Db_Update_Audit(FakeDbModel fakeDbModel)
         {
-            var connection = new SQLiteConnection("DataSource=:memory:");
+            var connection = new SqliteConnection("DataSource=:memory:");
             connection.Open();
 
             var options = new DbContextOptionsBuilder<FakeAuditRDbContext>()
@@ -86,11 +85,10 @@ namespace EntityFrameworkCore.AuditR.Test
             }
         }
 
-
         [Theory, AutoData]
         public void Db_Delete_Audit(FakeDbModel fakeDbModel)
         {
-            var connection = new SQLiteConnection("DataSource=:memory:");
+            var connection = new SqliteConnection("DataSource=:memory:");
             connection.Open();
 
             var options = new DbContextOptionsBuilder<FakeAuditRDbContext>()

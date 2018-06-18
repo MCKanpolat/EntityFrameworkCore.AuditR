@@ -6,6 +6,7 @@ namespace EntityFrameworkCore.AuditR.Test
     {
         [Key]
         public int Id { get; set; }
+
         public string Name { get; set; }
         public double TestDouble { get; set; }
         public float TestFloat { get; set; }
