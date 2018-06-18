@@ -5,7 +5,7 @@
     <AssemblyName>EntityFrameworkCore.AuditR</AssemblyName>
     <RepositoryUrl>https://github.com/MCKanpolat/EntityFrameworkCore.AuditR.git</RepositoryUrl>
     <Authors>MCKanpolat</Authors>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>Audit trail for EntityFramework Core</Description>
   </PropertyGroup>

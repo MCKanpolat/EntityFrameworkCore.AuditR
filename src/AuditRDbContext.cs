@@ -10,8 +10,34 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EntityFrameworkCore.AuditR
 {
+
+    public class BeforeSavingChangesEventArgs : EventArgs
+    {
+        public BeforeSavingChangesEventArgs(Guid correlationId)
+        {
+            CorrelationId = correlationId;
+            Cancel = false;
+        }
+
+        public bool Cancel { get; set; }
+        public Guid CorrelationId { get; }
+    }
+
+    public class AfterSavingChangesEventArgs : EventArgs
+    {
+        public AfterSavingChangesEventArgs(Guid correlationId)
+        {
+            CorrelationId = correlationId;
+        }
+
+        public Guid CorrelationId { get; }
+    }
+
     public class AuditRDbContext : DbContext
     {
+        public event EventHandler<BeforeSavingChangesEventArgs> BeforeSavingChanges;
+        public event EventHandler<AfterSavingChangesEventArgs> AfterSavingChanges;
+
         private readonly Func<AuditUser> _auditUserFunc;
         private readonly AuditRConfiguration _auditRConfiguration;
 
@@ -40,19 +66,36 @@ namespace EntityFrameworkCore.AuditR
             return SaveChangesAsync(acceptAllChangesOnSuccess).Result;
         }
 
-        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            return await SaveChangesAsync(true, cancellationToken);
+            return SaveChangesAsync(true, cancellationToken);
         }
 
+        /// <inheritdoc />
+        /// <summary>
+        /// Asynchronously saves all changes made in this context to the database.
+        /// </summary>
+        /// <param name="acceptAllChangesOnSuccess"></param>
+        /// <param name="cancellationToken"></param>
+        /// <exception cref="AuditUserNullException"></exception>
+        /// <returns></returns>
         public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
         {
             var currentUser = _auditUserFunc();
             if (currentUser == null)
             {
-                throw new ArgumentNullException(nameof(currentUser));
+                throw new AuditUserNullException();
             }
             var correlationId = Guid.NewGuid();
+            if (BeforeSavingChanges != null)
+            {
+                var beforeSavingChangesEventArgs = new BeforeSavingChangesEventArgs(correlationId);
+                BeforeSavingChanges.Invoke(this, beforeSavingChangesEventArgs);
+
+                if (beforeSavingChangesEventArgs.Cancel)
+                    return -1;
+            }
+
             var auditEntries = new List<AuditEntry>();
             int result = 0;
             var modifiedEntries = this.GetChangeset(w => w.State == EntityState.Deleted || w.State == EntityState.Modified);
@@ -67,6 +110,8 @@ namespace EntityFrameworkCore.AuditR
                 AuditEntries.AddRange(auditEntries);
                 await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
             }
+
+            AfterSavingChanges?.Invoke(this, new AfterSavingChangesEventArgs(correlationId));
             return result;
         }
     }
