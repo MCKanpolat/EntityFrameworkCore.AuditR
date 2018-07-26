@@ -38,6 +38,7 @@ namespace EntityFrameworkCore.AuditR.Extensions
                 OperationType = entry.State.ToOperationType(),
                 UserId = currentUser.Id.ToString(),
                 UserName = currentUser.Name,
+                IPAddress = currentUser.IpAddress,
                 CorrelationId = correlationId
             };
 

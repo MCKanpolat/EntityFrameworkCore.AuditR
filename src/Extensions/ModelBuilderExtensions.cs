@@ -26,6 +26,7 @@ namespace EntityFrameworkCore.AuditR.Extensions
                 b.Property(c => c.TableName).HasMaxLength(128).IsRequired();
                 b.Property(c => c.UserId).HasMaxLength(38).IsRequired();
                 b.Property(c => c.UserName).HasMaxLength(128).IsRequired();
+                b.Property(c => c.IPAddress).HasMaxLength(45).IsRequired();
                 b.Property(c => c.OperationType).HasColumnType("tinyint").IsRequired()
                 .HasConversion(v => (int)v, v => (OperationType)Enum.Parse(typeof(OperationType), v.ToString()));
             });
