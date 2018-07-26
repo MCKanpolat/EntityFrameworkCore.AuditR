@@ -10,7 +10,7 @@ namespace EntityFrameworkCore.AuditR.Test
     public class DbContextTest
     {
         private readonly AuditRConfiguration _auditRConfiguration = new AuditRConfiguration(keyDefaultValue: KeyDefaultValue.None);
-        private readonly AuditUser _auditUser = new AuditUser { Id = 10, Name = "FakeUser" };
+        private readonly AuditUser _auditUser = new AuditUser { Id = 10, Name = "FakeUser", IpAddress = "12.34.56.78" };
 
         [Theory, AutoData]
         public void Db_Insert_Audit(FakeDbModel fakeDbModel)

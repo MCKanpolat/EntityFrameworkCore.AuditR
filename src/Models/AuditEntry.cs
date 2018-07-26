@@ -21,6 +21,7 @@ namespace EntityFrameworkCore.AuditR.Models
         public string EntityData { get; set; }
         public string UserName { get; set; }
         public string UserId { get; set; }
+        public string IPAddress { get; set; }
         public OperationType OperationType { get; set; }
         public List<AuditEntryProperty> AuditEntryProperties { get; set; }
     }
