@@ -9,28 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EntityFrameworkCore.AuditR
 {
-    public class BeforeSavingChangesEventArgs : EventArgs
-    {
-        public BeforeSavingChangesEventArgs(Guid correlationId)
-        {
-            CorrelationId = correlationId;
-            Cancel = false;
-        }
-
-        public bool Cancel { get; set; }
-        public Guid CorrelationId { get; }
-    }
-
-    public class AfterSavingChangesEventArgs : EventArgs
-    {
-        public AfterSavingChangesEventArgs(Guid correlationId)
-        {
-            CorrelationId = correlationId;
-        }
-
-        public Guid CorrelationId { get; }
-    }
-
     public class AuditRDbContext : DbContext
     {
         public event EventHandler<BeforeSavingChangesEventArgs> BeforeSavingChanges;
