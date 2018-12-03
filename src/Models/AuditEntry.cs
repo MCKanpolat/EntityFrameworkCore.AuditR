@@ -8,6 +8,7 @@ namespace EntityFrameworkCore.AuditR.Models
     {
         public AuditEntry()
         {
+            Id = Guid.NewGuid();
             AuditEntryProperties = new List<AuditEntryProperty>();
         }
 
