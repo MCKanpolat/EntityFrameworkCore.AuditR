@@ -5,6 +5,11 @@ namespace EntityFrameworkCore.AuditR.Models
 {
     public class AuditEntryProperty
     {
+        public AuditEntryProperty()
+        {
+            Id = Guid.NewGuid();
+        }
+
         [Key]
         public Guid Id { get; set; }
         public string OldValue { get; set; }

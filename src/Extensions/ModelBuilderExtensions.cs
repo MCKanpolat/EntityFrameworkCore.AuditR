@@ -1,18 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using EntityFrameworkCore.AuditR.Models;
+﻿using EntityFrameworkCore.AuditR.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace EntityFrameworkCore.AuditR.Extensions
 {
     internal static class ModelBuilderExtensions
     {
-        internal readonly static List<(KeyDefaultValue, string)> _keyDefaultValueTranslation = new List<(KeyDefaultValue, string)>() {
-            (KeyDefaultValue.NewSequentialId, "NEWSEQUENTIALID()") ,
-            (KeyDefaultValue.NewId, "NEWID()") };
-
-
         internal static ModelBuilder MapAuditR(this ModelBuilder modelBuilder, AuditRConfiguration auditRConfiguration)
         {
             modelBuilder.Entity<AuditEntry>(b =>
@@ -30,12 +23,6 @@ namespace EntityFrameworkCore.AuditR.Extensions
                 b.Property(c => c.OperationType).HasColumnType("tinyint").IsRequired()
                 .HasConversion(v => (int)v, v => (OperationType)Enum.Parse(typeof(OperationType), v.ToString()));
             });
-
-            if (auditRConfiguration.KeyDefaultValue != KeyDefaultValue.None)
-            {
-                modelBuilder.Entity<AuditEntry>(b => b.Property(c => c.Id)
-                .HasDefaultValueSql(_keyDefaultValueTranslation.First(w => w.Item1 == auditRConfiguration.KeyDefaultValue).Item2));
-            }
 
             modelBuilder.Entity<AuditEntry>().HasIndex(w => new { w.CorrelationId, w.EntityKey, w.UserId });
             modelBuilder.Entity<AuditEntry>().ToTable(auditRConfiguration.AuditEntryTableName, auditRConfiguration.Schema);

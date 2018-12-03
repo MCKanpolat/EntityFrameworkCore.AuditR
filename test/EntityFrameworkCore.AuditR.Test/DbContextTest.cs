@@ -1,15 +1,15 @@
-using System.Linq;
 using AutoFixture.Xunit2;
 using EntityFrameworkCore.AuditR.Models;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using Xunit;
 
 namespace EntityFrameworkCore.AuditR.Test
 {
     public class DbContextTest
     {
-        private readonly AuditRConfiguration _auditRConfiguration = new AuditRConfiguration(keyDefaultValue: KeyDefaultValue.None);
+        private readonly AuditRConfiguration _auditRConfiguration = new AuditRConfiguration();
         private readonly AuditUser _auditUser = new AuditUser { Id = 10, Name = "FakeUser", IpAddress = "12.34.56.78" };
 
         [Theory, AutoData]
