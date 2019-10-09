@@ -48,7 +48,7 @@ namespace EntityFrameworkCore.AuditR.Extensions
                 includedProperties.AddRange(props.Select(pi => pi.Name));
 
                 var changeset = (from prop in entry.Properties
-                                 where ((addChangesetWhenInsert || !Equals(prop.CurrentValue, prop.OriginalValue)) && includedProperties.Contains(prop.Metadata.Name))
+                                 where (((addChangesetWhenInsert && prop.CurrentValue != null) || !Equals(prop.CurrentValue, prop.OriginalValue)) && includedProperties.Contains(prop.Metadata.Name))
                                  select new AuditEntryProperty
                                  {
                                      PropertyName = prop.Metadata.Name,
