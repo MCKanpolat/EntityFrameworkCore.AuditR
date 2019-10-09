@@ -9,8 +9,46 @@ namespace EntityFrameworkCore.AuditR.Test
 {
     public class DbContextTest
     {
-        private readonly AuditRConfiguration _auditRConfiguration = new AuditRConfiguration();
+        private readonly AuditRConfiguration _auditRConfiguration = new AuditRConfiguration(addChangesetWhenInsert: true);
         private readonly AuditUser _auditUser = new AuditUser { Id = 10, Name = "FakeUser", IpAddress = "12.34.56.78" };
+
+        [Theory, AutoData]
+        public void Db_Insert_Audit_Without_EntryProperties(FakeDbModel fakeDbModel)
+        {
+            var connection = new SqliteConnection("DataSource=:memory:");
+            connection.Open();
+
+            var options = new DbContextOptionsBuilder<FakeAuditRDbContext>()
+             .UseSqlite(connection)
+             .Options;
+
+            var config = new AuditRConfiguration(addChangesetWhenInsert: false);
+
+            try
+            {
+                using (var context = new FakeAuditRDbContext(() => _auditUser, config, options))
+                {
+                    context.Database.EnsureCreated();
+                }
+
+                using (var context = new FakeAuditRDbContext(() => _auditUser, config, options))
+                {
+                    context.FakeDbModels.Add(fakeDbModel);
+                    context.SaveChanges();
+                }
+
+                using (var context = new FakeAuditRDbContext(() => _auditUser, config, options))
+                {
+                    Assert.True(context.FakeDbModels.Any());
+                    Assert.True(context.AuditEntries.Any());
+                    Assert.False(context.AuditEntryProperties.Any());
+                }
+            }
+            finally
+            {
+                connection.Close();
+            }
+        }
 
         [Theory, AutoData]
         public void Db_Insert_Audit(FakeDbModel fakeDbModel)
@@ -39,6 +77,7 @@ namespace EntityFrameworkCore.AuditR.Test
                 {
                     Assert.True(context.FakeDbModels.Any());
                     Assert.True(context.AuditEntries.Any());
+                    Assert.True(context.AuditEntryProperties.Any());
                 }
             }
             finally
@@ -59,12 +98,13 @@ namespace EntityFrameworkCore.AuditR.Test
 
             try
             {
-                using (var context = new FakeAuditRDbContext(() => _auditUser, _auditRConfiguration, options))
+                var config = new AuditRConfiguration(addChangesetWhenInsert: false);
+                using (var context = new FakeAuditRDbContext(() => _auditUser, config, options))
                 {
                     context.Database.EnsureCreated();
                 }
 
-                using (var context = new FakeAuditRDbContext(() => _auditUser, _auditRConfiguration, options))
+                using (var context = new FakeAuditRDbContext(() => _auditUser, config, options))
                 {
                     context.FakeDbModels.Add(fakeDbModel);
                     context.SaveChanges();
@@ -72,7 +112,7 @@ namespace EntityFrameworkCore.AuditR.Test
                     context.SaveChanges();
                 }
 
-                using (var context = new FakeAuditRDbContext(() => _auditUser, _auditRConfiguration, options))
+                using (var context = new FakeAuditRDbContext(() => _auditUser, config, options))
                 {
                     Assert.True(context.FakeDbModels.Any());
                     Assert.True(context.AuditEntryProperties.Count() == 1);

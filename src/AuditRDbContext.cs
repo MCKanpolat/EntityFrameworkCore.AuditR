@@ -92,13 +92,13 @@ namespace EntityFrameworkCore.AuditR
             int result = 0;
             var modifiedEntries = this.GetChangeset(w => w.State == EntityState.Deleted || w.State == EntityState.Modified);
             var newEntries = this.GetChangeset(w => w.State == EntityState.Added);
-            auditEntries.AddRange(modifiedEntries.GetAuditEntries(currentUser, correlationId));
+            auditEntries.AddRange(modifiedEntries.GetAuditEntries(currentUser, correlationId, false));
 
             result = await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
 
             if (modifiedEntries.Count > 0 || newEntries.Count > 0)
             {
-                auditEntries.AddRange(newEntries.GetAuditEntries(currentUser, correlationId));
+                auditEntries.AddRange(newEntries.GetAuditEntries(currentUser, correlationId, _auditRConfiguration.AddChangesetWhenInsert));
                 AuditEntries.AddRange(auditEntries);
                 await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
             }

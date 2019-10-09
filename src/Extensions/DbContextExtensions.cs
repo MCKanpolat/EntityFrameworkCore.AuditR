@@ -16,13 +16,13 @@ namespace EntityFrameworkCore.AuditR.Extensions
                 .ToList();
         }
 
-        internal static List<AuditEntry> GetAuditEntries(this IEnumerable<EntityEntry> changeset, AuditUser currentUser, Guid correlationId)
+        internal static List<AuditEntry> GetAuditEntries(this IEnumerable<EntityEntry> changeset, AuditUser currentUser, Guid correlationId, bool addChangesetWhenInsert)
         {
             var dateCreated = DateTime.UtcNow;
-            return changeset.Select(w => Audit(w, currentUser, correlationId, dateCreated)).ToList();
+            return changeset.Select(w => Audit(w, currentUser, correlationId, dateCreated, addChangesetWhenInsert)).ToList();
         }
 
-        private static AuditEntry Audit(EntityEntry entry, AuditUser currentUser, Guid correlationId, DateTime dateCreated)
+        private static AuditEntry Audit(EntityEntry entry, AuditUser currentUser, Guid correlationId, DateTime dateCreated, bool addChangesetWhenInsert)
         {
             var includedProperties = new List<string>();
             var entityKey = entry.GetPrimaryKey();
@@ -42,18 +42,18 @@ namespace EntityFrameworkCore.AuditR.Extensions
                 CorrelationId = correlationId
             };
 
-            if (entry.State == EntityState.Modified)
+            if (entry.State == EntityState.Modified || addChangesetWhenInsert)
             {
                 var props = entityType.GetProperties().Where(prop => prop.GetCustomAttributes(typeof(AuditIgnorePropertyAttribute), false).Length == 0);
                 includedProperties.AddRange(props.Select(pi => pi.Name));
 
                 var changeset = (from prop in entry.Properties
-                                 where (!Equals(prop.CurrentValue, prop.OriginalValue) && includedProperties.Contains(prop.Metadata.Name))
+                                 where ((addChangesetWhenInsert || !Equals(prop.CurrentValue, prop.OriginalValue)) && includedProperties.Contains(prop.Metadata.Name))
                                  select new AuditEntryProperty
                                  {
                                      PropertyName = prop.Metadata.Name,
                                      NewValue = Convert.ToString(prop.CurrentValue),
-                                     OldValue = Convert.ToString(prop.OriginalValue)
+                                     OldValue = addChangesetWhenInsert ? string.Empty : Convert.ToString(prop.OriginalValue)
                                  }).ToArray();
 
                 auditEntry.AuditEntryProperties.AddRange(changeset);
