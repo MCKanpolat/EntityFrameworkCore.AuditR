@@ -32,7 +32,12 @@ namespace EntityFrameworkCore.AuditR.Extensions
             {
                 DateCreated = dateCreated,
                 EntityName = entityType.FullName,
+#if NETSTANDARD2_0
                 TableName = entry.Metadata.Relational().TableName,
+#endif
+#if NETSTANDARD2_1
+                TableName = entry.Metadata.GetTableName(),
+#endif
                 EntityData = entry.ToJson(),
                 EntityKey = entityKey,
                 OperationType = entry.State.ToOperationType(),
