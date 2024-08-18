@@ -1,26 +1,19 @@
 ﻿using System;
-using EntityFrameworkCore.AuditR.Models;
+using EntityFrameworkCore.AuditR.Abstraction;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EntityFrameworkCore.AuditR.Extensions
+namespace EntityFrameworkCore.AuditR.Extensions;
+
+public static class IServiceCollectionExtensions
 {
-    public static class IServiceCollectionExtensions
+    public static IServiceCollection AddAuditR<TCurrentUser>(this IServiceCollection services,
+        AuditRConfiguration auditRConfiguration)
+        where TCurrentUser : class, ICurrentUser
     {
-        public static IServiceCollection AddAuditR(this IServiceCollection services, Func<AuditUser> funcCurrentUser, AuditRConfiguration auditRConfiguration)
-        {
-            if (funcCurrentUser == null)
-            {
-                throw new ArgumentNullException(nameof(funcCurrentUser));
-            }
+        ArgumentNullException.ThrowIfNull(auditRConfiguration);
 
-            if (auditRConfiguration == null)
-            {
-                throw new ArgumentNullException(nameof(auditRConfiguration));
-            }
-
-            services.AddScoped((s) => funcCurrentUser);
-            services.AddSingleton(auditRConfiguration);
-            return services;
-        }
+        services.AddScoped<ICurrentUser, TCurrentUser>();
+        services.AddSingleton(auditRConfiguration);
+        return services;
     }
 }

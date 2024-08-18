@@ -1,10 +1,8 @@
 ﻿using System;
 
-namespace EntityFrameworkCore.AuditR
-{
+namespace EntityFrameworkCore.AuditR.Attributes;
 
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class AuditIgnorePropertyAttribute : Attribute
-    {
-    }
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class AuditIgnorePropertyAttribute : Attribute
+{
 }

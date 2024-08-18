@@ -1,61 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Linq;
+using EntityFrameworkCore.AuditR.Enums;
+using EntityFrameworkCore.AuditR.Resolvers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Newtonsoft.Json;
 
-namespace EntityFrameworkCore.AuditR.Extensions
+namespace EntityFrameworkCore.AuditR.Extensions;
+
+internal static class EntityEntryExtensions
 {
-    internal static class EntityEntryExtensions
+    internal static string ToJsonString(this EntityEntry entry)
     {
-        internal static string ToJson(this EntityEntry entry)
-        {
-            return JsonConvert.SerializeObject(entry.Entity, Formatting.Indented,
-                new JsonSerializerSettings
-                {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                    Formatting = Formatting.None,
-                    NullValueHandling = NullValueHandling.Ignore,
-                    DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                    DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                    ContractResolver = new EntityEntryContractResolver(entry)
-                });
-
-        }
-
-        internal static string GetPrimaryKey(this EntityEntry entityEntry)
-        {
-            if (entityEntry == null)
+        return JsonConvert.SerializeObject(entry.Entity, Formatting.Indented,
+            new JsonSerializerSettings
             {
-                throw new ArgumentNullException(nameof(entityEntry));
-            }
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                Formatting = Formatting.None,
+                NullValueHandling = NullValueHandling.Ignore,
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+                DateFormatHandling = DateFormatHandling.IsoDateFormat,
+                ContractResolver = new EntityEntryContractResolver(entry)
+            });
+    }
 
-            var pk = entityEntry.Metadata.FindPrimaryKey();
-            var result = new List<object>();
-            foreach (var prop in pk.Properties)
-            {
-                var value = entityEntry.Property(prop.Name).CurrentValue;
-                if (value != null)
-                {
-                    result.Add(value);
-                }
-            }
-            return string.Join(",", result);
-        }
+    internal static string? GetPrimaryKeyValue(this EntityEntry entityEntry)
+    {
+        var key = entityEntry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey());
+        return key is { CurrentValue: not null } ? key.CurrentValue.ToString() : null;
+    }
 
-        internal static OperationType ToOperationType(this EntityState entityState)
+    internal static OperationType ToOperationType(this EntityState entityState)
+    {
+        return entityState switch
         {
-            switch (entityState)
-            {
-                case EntityState.Deleted:
-                    return OperationType.Delete;
-                case EntityState.Modified:
-                    return OperationType.Update;
-                case EntityState.Added:
-                    return OperationType.Insert;
-                default:
-                    return OperationType.Insert;
-            }
-        }
+            EntityState.Deleted => OperationType.Delete,
+            EntityState.Modified => OperationType.Update,
+            EntityState.Added => OperationType.Insert,
+            _ => OperationType.Insert
+        };
     }
 }
